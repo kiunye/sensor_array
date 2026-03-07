@@ -1,0 +1,15 @@
+# Sobelow security scan — run: mix sobelow or mix sobelow --config
+# See: mix help sobelow
+[
+  verbose: false,
+  private: false,
+  skip: false,
+  router: "",
+  exit: "false",
+  format: "txt",
+  out: "",
+  threshold: "low",
+  # HTTPS/CSP enforced in production (see config/runtime.exs, SECURITY_REVIEW.md)
+  ignore: ["Config.HTTPS", "Config.CSP"],
+  ignore_files: []
+]

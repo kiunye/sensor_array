@@ -11,7 +11,16 @@ defmodule SensorArray.MixProject do
       aliases: aliases(),
       deps: deps(),
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
-      listeners: [Phoenix.CodeReloader]
+      listeners: [Phoenix.CodeReloader],
+      dialyzer: dialyzer()
+    ]
+  end
+
+  defp dialyzer do
+    [
+      plt_file: {:no_warn, "priv/plts/dialyzer.plt"},
+      plt_add_apps: [:mix, :ecto, :phoenix_live_view],
+      flags: [:missing_return, :extra_return, :unmatched_returns, :error_handling]
     ]
   end
 
@@ -71,7 +80,11 @@ defmodule SensorArray.MixProject do
       {:jason, "~> 1.2"},
       {:ecto_psql_extras, "~> 0.6"},
       {:dns_cluster, "~> 0.2.0"},
-      {:bandit, "~> 1.5"}
+      {:bandit, "~> 1.5"},
+      # Code quality and security (dev/test)
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:sobelow, "~> 0.14", only: :dev, runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
     ]
   end
 
@@ -94,7 +107,14 @@ defmodule SensorArray.MixProject do
         "esbuild sensor_array --minify",
         "phx.digest"
       ],
-      precommit: ["compile --warning-as-errors", "deps.unlock --unused", "format", "test"]
+      precommit: [
+        "compile --warning-as-errors",
+        "deps.unlock --unused",
+        "format",
+        "credo",
+        "sobelow --config",
+        "test"
+      ]
     ]
   end
 end

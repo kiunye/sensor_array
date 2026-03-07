@@ -35,3 +35,9 @@ sensor_array-*.tar
 npm-debug.log
 /assets/node_modules/
 
+# Local env (credentials). Commit .env.example only.
+.env
+
+# Dialyzer PLT
+/priv/plts/
+

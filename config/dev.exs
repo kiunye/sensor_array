@@ -1,8 +1,21 @@
 import Config
 
-# Configure your database (use DATABASE_URL when set, e.g. for Docker Postgres)
+# Configure your database. Copy .env.example to .env (Docker and app both read it).
+# DATABASE_URL can be set directly, or built from POSTGRES_* when unset.
+database_url =
+  System.get_env("DATABASE_URL") ||
+    case System.get_env("POSTGRES_USER") do
+      nil -> "ecto://postgres:postgres@localhost/sensor_array_dev"
+      _ ->
+        user = System.get_env("POSTGRES_USER") || "postgres"
+        pass = System.get_env("POSTGRES_PASSWORD") || "postgres"
+        host = System.get_env("POSTGRES_HOST") || "localhost"
+        db = System.get_env("POSTGRES_DB") || "sensor_array_dev"
+        "ecto://#{user}:#{pass}@#{host}/#{db}"
+    end
+
 config :sensor_array, SensorArray.Repo,
-  url: System.get_env("DATABASE_URL") || "ecto://postgres:postgres@localhost/sensor_array_dev",
+  url: database_url,
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10

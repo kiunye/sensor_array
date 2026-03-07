@@ -4,6 +4,24 @@
 # This configuration file is loaded before any dependency and
 # is restricted to this project.
 
+# Load .env into the environment when present (dev/test). Do not commit .env; use .env.example as a template.
+env_path = Path.expand("../.env", __DIR__)
+if File.exists?(env_path) do
+  env_path
+  |> File.stream!()
+  |> Stream.map(&String.trim/1)
+  |> Stream.reject(&(&1 == "" or String.starts_with?(&1, "#")))
+  |> Enum.each(fn line ->
+    case String.split(line, "=", parts: 2) do
+      [key, value] ->
+        value = value |> String.trim() |> String.trim_leading("\"") |> String.trim_trailing("\"")
+        System.put_env(String.trim(key), value)
+      _ ->
+        :ok
+    end
+  end)
+end
+
 # General application configuration
 import Config
 

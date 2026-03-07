@@ -3,16 +3,24 @@ import Config
 # Oban: use testing mode so jobs run inline in tests
 config :sensor_array, Oban, testing: :inline
 
-# Configure your database
-#
-# The MIX_TEST_PARTITION environment variable can be used
-# to provide built-in test partitioning in CI environment.
-# Run `mix help test` for more information.
+# Configure your database (TEST_DATABASE_URL, or DATABASE_URL, or POSTGRES_* from .env).
+partition = System.get_env("MIX_TEST_PARTITION") || ""
+test_url =
+  System.get_env("TEST_DATABASE_URL") ||
+    case System.get_env("DATABASE_URL") do
+      nil ->
+        # Build from POSTGRES_* (same as dev) when DATABASE_URL unset
+        user = System.get_env("POSTGRES_USER") || "postgres"
+        pass = System.get_env("POSTGRES_PASSWORD") || "postgres"
+        host = System.get_env("POSTGRES_HOST") || "localhost"
+        "ecto://#{user}:#{pass}@#{host}/sensor_array_test#{partition}"
+      url ->
+        url
+        |> String.replace(~r"/[^/]+$", "/sensor_array_test#{partition}")
+    end
+
 config :sensor_array, SensorArray.Repo,
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  database: "sensor_array_test#{System.get_env("MIX_TEST_PARTITION")}",
+  url: test_url,
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
 
