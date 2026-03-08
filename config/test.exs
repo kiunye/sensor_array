@@ -1,5 +1,8 @@
 import Config
 
+# Only in tests, remove the complexity from the password hashing algorithm
+config :bcrypt_elixir, :log_rounds, 1
+
 # Oban: use testing mode so jobs run inline in tests
 config :sensor_array, Oban, testing: :inline
 

@@ -1,11 +1,15 @@
 defmodule SensorArray.Teams do
   @moduledoc """
-  Context for teams. Stub API until Task 2 (schema + associations).
+  Context for teams. Delegates to Accounts for team data.
   """
+  alias SensorArray.Accounts
 
-  @doc "Returns all teams. Stub: always {:ok, []}."
-  def list_teams, do: {:ok, []}
+  def list_teams, do: {:ok, Accounts.list_teams()}
 
-  @doc "Returns the team for the given id. Stub: always {:error, :not_found}."
-  def get_team(_id), do: {:error, :not_found}
+  def get_team(id) do
+    case Accounts.get_team(id) do
+      nil -> {:error, :not_found}
+      team -> {:ok, team}
+    end
+  end
 end

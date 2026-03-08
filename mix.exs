@@ -49,6 +49,7 @@ defmodule SensorArray.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:bcrypt_elixir, "~> 3.0"},
       {:phoenix, "~> 1.8.3"},
       {:phoenix_ecto, "~> 4.5"},
       {:ecto_sql, "~> 3.13"},
@@ -74,6 +75,7 @@ defmodule SensorArray.MixProject do
       {:nimble_csv, "~> 1.3"},
       {:cloak, "~> 1.1"},
       {:cloak_ecto, "~> 1.3"},
+      {:bodyguard, "~> 2.4"},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.26"},
