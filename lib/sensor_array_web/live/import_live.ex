@@ -96,13 +96,8 @@ defmodule SensorArrayWeb.ImportLive do
       consume_uploaded_entries(socket, :csv, fn %{path: path}, _entry ->
         content = File.read!(path)
         rows = CsvParser.parse_to_maps(content)
-        case Ingestion.ingest_csv(team_id, format, rows) do
-          {:ok, counts} ->
-            format_result(format, counts)
-
-          {:error, reason} ->
-            raise "Ingestion failed: #{inspect(reason)}"
-        end
+        {:ok, counts} = Ingestion.ingest_csv(team_id, format, rows)
+        format_result(format, counts)
       end)
 
     socket =

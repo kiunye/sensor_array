@@ -16,15 +16,9 @@ defmodule SensorArray.Workers.StoreSyncWorker do
 
   @impl Oban.Worker
   def perform(_job) do
-    case Integrations.list_all_connections() do
-      {:ok, connections} ->
-        Enum.each(connections, &sync_connection/1)
-        :ok
-
-      {:error, reason} ->
-        Logger.error("StoreSyncWorker: failed to list connections: #{inspect(reason)}")
-        :ok
-    end
+    {:ok, connections} = Integrations.list_all_connections()
+    Enum.each(connections, &sync_connection/1)
+    :ok
   end
 
   defp sync_connection(conn) do

@@ -32,6 +32,31 @@ const liveSocket = new LiveSocket("/live", Socket, {
   hooks: {...colocatedHooks},
 })
 
+// Reload once when connection is closed (e.g. 410 session gone after server restart)
+// so the user gets a fresh session instead of seeing a stale 410 response.
+let reloadTimeout = null
+function setupReloadOnStaleSession() {
+  const socket = liveSocket.getSocket()
+  if (!socket || !socket.conn) return
+  socket.conn.onClose(() => {
+    if (reloadTimeout) return
+    reloadTimeout = setTimeout(() => {
+      if (document.visibilityState === "visible" && !liveSocket.getSocket().isConnected()) {
+        window.location.reload()
+      }
+      reloadTimeout = null
+    }, 2000)
+  })
+  socket.conn.onOpen(() => {
+    if (reloadTimeout) {
+      clearTimeout(reloadTimeout)
+      reloadTimeout = null
+    }
+  })
+}
+// Run after connect so socket.conn exists (longpoll or websocket)
+setTimeout(setupReloadOnStaleSession, 100)
+
 // Show progress bar on live navigation and form submits
 topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})
 window.addEventListener("phx:page-loading-start", _info => topbar.show(300))
