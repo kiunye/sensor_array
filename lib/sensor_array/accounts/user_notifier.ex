@@ -1,8 +1,11 @@
 defmodule SensorArray.Accounts.UserNotifier do
+  @moduledoc """
+  Delivers user-related emails (login, registration, password and email updates).
+  """
   import Swoosh.Email
 
-  alias SensorArray.Mailer
   alias SensorArray.Accounts.User
+  alias SensorArray.Mailer
 
   # Delivers the email using the application mailer.
   defp deliver(recipient, subject, body) do

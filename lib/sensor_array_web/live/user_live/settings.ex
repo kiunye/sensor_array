@@ -3,6 +3,7 @@ defmodule SensorArrayWeb.UserLive.Settings do
 
   on_mount {SensorArrayWeb.UserAuth, :require_sudo_mode}
 
+  alias Ecto.Changeset
   alias SensorArray.Accounts
 
   @impl true
@@ -119,7 +120,7 @@ defmodule SensorArrayWeb.UserLive.Settings do
     case Accounts.change_user_email(user, user_params) do
       %{valid?: true} = changeset ->
         Accounts.deliver_user_update_email_instructions(
-          Ecto.Changeset.apply_action!(changeset, :insert),
+          Changeset.apply_action!(changeset, :insert),
           user.email,
           &url(~p"/users/settings/confirm-email/#{&1}")
         )

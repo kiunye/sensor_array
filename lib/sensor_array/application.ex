@@ -5,18 +5,24 @@ defmodule SensorArray.Application do
 
   use Application
 
+  alias SensorArray.Analytics.ETSStore
+  alias SensorArray.Ingestion.CsvPipeline
+  alias SensorArray.Repo
+  alias SensorArrayWeb.Endpoint
+  alias SensorArrayWeb.Telemetry
+
   @impl true
   def start(_type, _args) do
     children = [
-      SensorArrayWeb.Telemetry,
-      SensorArray.Repo,
+      Telemetry,
+      Repo,
       {DNSCluster, query: Application.get_env(:sensor_array, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: SensorArray.PubSub},
       {Oban, Application.get_env(:sensor_array, Oban)},
-      SensorArray.Analytics.ETSStore,
-      SensorArray.Ingestion.CsvPipeline,
+      ETSStore,
+      CsvPipeline,
       # Start to serve requests, typically the last entry
-      SensorArrayWeb.Endpoint
+      Endpoint
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
@@ -29,7 +35,7 @@ defmodule SensorArray.Application do
   # whenever the application is updated.
   @impl true
   def config_change(changed, _new, removed) do
-    SensorArrayWeb.Endpoint.config_change(changed, removed)
+    Endpoint.config_change(changed, removed)
     :ok
   end
 end

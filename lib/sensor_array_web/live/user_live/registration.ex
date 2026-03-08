@@ -3,6 +3,7 @@ defmodule SensorArrayWeb.UserLive.Registration do
 
   alias SensorArray.Accounts
   alias SensorArray.Accounts.User
+  alias SensorArrayWeb.UserAuth
 
   @impl true
   def render(assigns) do
@@ -45,7 +46,7 @@ defmodule SensorArrayWeb.UserLive.Registration do
   @impl true
   def mount(_params, _session, %{assigns: %{current_scope: %{user: user}}} = socket)
       when not is_nil(user) do
-    {:ok, redirect(socket, to: SensorArrayWeb.UserAuth.signed_in_path(socket))}
+    {:ok, redirect(socket, to: UserAuth.signed_in_path(socket))}
   end
 
   def mount(_params, _session, socket) do

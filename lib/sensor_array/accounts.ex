@@ -3,7 +3,7 @@ defmodule SensorArray.Accounts do
   Context for users and team membership.
   """
 
-  alias SensorArray.Accounts.{Team, User, UserToken, UserNotifier}
+  alias SensorArray.Accounts.{Team, User, UserNotifier, UserToken}
   alias SensorArray.Repo
 
   import Ecto.Query

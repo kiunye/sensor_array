@@ -3,10 +3,11 @@ defmodule SensorArray.Ingestion.Upsert do
   Idempotent bulk upsert of normalized attrs into products, customers, and orders.
   Uses Repo.insert_all with on_conflict to replace by (team_id, external_id, source).
   """
-  alias SensorArray.Repo
-  alias SensorArray.Products.Product
   alias SensorArray.Customers.Customer
   alias SensorArray.Orders.Order
+  alias SensorArray.Products.Product
+  alias SensorArray.Repo
+
   import Ecto.Query
 
   @product_conflict [:team_id, :external_id, :source]

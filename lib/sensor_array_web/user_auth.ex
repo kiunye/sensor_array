@@ -1,11 +1,17 @@
 defmodule SensorArrayWeb.UserAuth do
+  @moduledoc """
+  Helpers for user authentication: session, remember-me, LiveView mount, and redirects.
+  """
   use SensorArrayWeb, :verified_routes
 
   import Plug.Conn
   import Phoenix.Controller
 
+  alias Phoenix.Component
+  alias Phoenix.LiveView
   alias SensorArray.Accounts
   alias SensorArray.Accounts.Scope
+  alias SensorArrayWeb.Endpoint
 
   # Make the remember me cookie valid for 14 days. This should match
   # the session validity setting in UserToken.
@@ -51,7 +57,7 @@ defmodule SensorArrayWeb.UserAuth do
     user_token && Accounts.delete_user_session_token(user_token)
 
     if live_socket_id = get_session(conn, :live_socket_id) do
-      SensorArrayWeb.Endpoint.broadcast(live_socket_id, "disconnect", %{})
+      Endpoint.broadcast(live_socket_id, "disconnect", %{})
     end
 
     conn
@@ -179,7 +185,7 @@ defmodule SensorArrayWeb.UserAuth do
   """
   def disconnect_sessions(tokens) do
     Enum.each(tokens, fn %{token: token} ->
-      SensorArrayWeb.Endpoint.broadcast(user_session_topic(token), "disconnect", %{})
+      Endpoint.broadcast(user_session_topic(token), "disconnect", %{})
     end)
   end
 
@@ -229,8 +235,8 @@ defmodule SensorArrayWeb.UserAuth do
     else
       socket =
         socket
-        |> Phoenix.LiveView.put_flash(:error, "You must log in to access this page.")
-        |> Phoenix.LiveView.redirect(to: ~p"/users/log-in")
+        |> LiveView.put_flash(:error, "You must log in to access this page.")
+        |> LiveView.redirect(to: ~p"/users/log-in")
 
       {:halt, socket}
     end
@@ -244,15 +250,15 @@ defmodule SensorArrayWeb.UserAuth do
     else
       socket =
         socket
-        |> Phoenix.LiveView.put_flash(:error, "You must re-authenticate to access this page.")
-        |> Phoenix.LiveView.redirect(to: ~p"/users/log-in")
+        |> LiveView.put_flash(:error, "You must re-authenticate to access this page.")
+        |> LiveView.redirect(to: ~p"/users/log-in")
 
       {:halt, socket}
     end
   end
 
   defp mount_current_scope(socket, session) do
-    Phoenix.Component.assign_new(socket, :current_scope, fn ->
+    Component.assign_new(socket, :current_scope, fn ->
       {user, _} =
         if user_token = session["user_token"] do
           Accounts.get_user_by_session_token(user_token)

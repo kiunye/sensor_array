@@ -35,7 +35,7 @@ defmodule SensorArray.Integrations do
   end
 
   @doc "Returns all store connections (for hourly sync worker)."
-  def list_all_connections() do
+  def list_all_connections do
     connections =
       StoreConnection
       |> order_by([c], asc: c.team_id, asc: c.inserted_at)

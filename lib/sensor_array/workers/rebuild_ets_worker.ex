@@ -7,11 +7,14 @@ defmodule SensorArray.Workers.RebuildETSWorker do
 
   require Logger
 
+  alias SensorArray.Analytics.ETSStore
+  alias SensorArrayWeb.Endpoint
+
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"team_id" => team_id}}) do
     team_id = normalize_team_id(team_id)
-    SensorArray.Analytics.ETSStore.rebuild(team_id, placeholder: true)
-    SensorArrayWeb.Endpoint.broadcast("team:#{team_id}", "metrics_updated", %{})
+    ETSStore.rebuild(team_id, placeholder: true)
+    Endpoint.broadcast("team:#{team_id}", "metrics_updated", %{})
     :ok
   end
 
