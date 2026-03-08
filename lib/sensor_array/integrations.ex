@@ -33,4 +33,27 @@ defmodule SensorArray.Integrations do
       conn -> {:ok, conn}
     end
   end
+
+  @doc "Returns all store connections (for hourly sync worker)."
+  def list_all_connections() do
+    connections =
+      StoreConnection
+      |> order_by([c], asc: c.team_id, asc: c.inserted_at)
+      |> Repo.all()
+
+    {:ok, connections}
+  end
+
+  @doc "Creates a sync log entry for a connection."
+  def log_sync(connection_id, team_id, status, records_synced, error) do
+    %SensorArray.Integrations.SyncLog{
+      team_id: team_id,
+      connection_id: connection_id,
+      status: status,
+      records_synced: records_synced || 0,
+      error: error,
+      completed_at: DateTime.utc_now()
+    }
+    |> Repo.insert()
+  end
 end

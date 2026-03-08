@@ -95,7 +95,13 @@ config :phoenix, :json_library, Jason
 config :sensor_array, Oban,
   repo: SensorArray.Repo,
   queues: [default: 10, sync: 10],
-  plugins: [{Oban.Plugins.Pruner, max_age: 300}]
+  plugins: [
+    {Oban.Plugins.Pruner, max_age: 300},
+    {Oban.Plugins.Cron,
+     crontab: [
+       {"0 * * * *", SensorArray.Workers.StoreSyncWorker, queue: :sync}
+     ]}
+  ]
 
 # Cloak: encryption for store API keys (Vault module defined in lib).
 # Production: key is set in config/runtime.exs from CLOAK_KEY (required at runtime).
