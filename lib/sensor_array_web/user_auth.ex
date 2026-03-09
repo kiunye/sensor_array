@@ -258,7 +258,8 @@ defmodule SensorArrayWeb.UserAuth do
   end
 
   defp mount_current_scope(socket, session) do
-    Component.assign_new(socket, :current_scope, fn ->
+    socket
+    |> Component.assign_new(:current_scope, fn ->
       {user, _} =
         if user_token = session["user_token"] do
           Accounts.get_user_by_session_token(user_token)
@@ -273,15 +274,15 @@ defmodule SensorArrayWeb.UserAuth do
         nil
       end
     end)
+    |> Phoenix.Component.assign(:request_path, session["request_path"] || "/")
   end
 
   @doc "Returns the path to redirect to after log in."
-  # the user was already logged in, redirect to settings
   def signed_in_path(%Plug.Conn{assigns: %{current_scope: %Scope{user: %Accounts.User{}}}}) do
-    ~p"/users/settings"
+    ~p"/dashboard"
   end
 
-  def signed_in_path(_), do: ~p"/"
+  def signed_in_path(_), do: ~p"/dashboard"
 
   @doc """
   Plug for routes that require the user to be authenticated.

@@ -27,8 +27,7 @@ defmodule SensorArrayWeb.ImportLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="space-y-6">
+    <div class="space-y-6">
         <.header>
           Import data
           <:subtitle>Upload a CSV file (orders, products, or customers). First row must be headers.</:subtitle>
@@ -76,8 +75,7 @@ defmodule SensorArrayWeb.ImportLive do
             <p class="mt-1 text-zinc-600 dark:text-zinc-400"><%= @import_result %></p>
           </div>
         <% end %>
-      </div>
-    </Layouts.app>
+    </div>
     """
   end
 
@@ -97,21 +95,23 @@ defmodule SensorArrayWeb.ImportLive do
         content = File.read!(path)
         rows = CsvParser.parse_to_maps(content)
         {:ok, counts} = Ingestion.ingest_csv(team_id, format, rows)
-        format_result(format, counts)
+        {:ok, format_result(format, counts)}
       end)
 
     socket =
       case result do
-        {[], []} ->
+        [] ->
           put_flash(socket, :error, "Please select a CSV file.")
 
-        {[msg], []} ->
+        [msg] ->
           socket
           |> put_flash(:info, "Import completed.")
           |> assign(:import_result, msg)
 
-        {[], [_ | _]} ->
-          put_flash(socket, :error, "Import failed. Check file format and try again.")
+        [_ | _] ->
+          socket
+          |> put_flash(:info, "Import completed.")
+          |> assign(:import_result, List.first(result))
       end
 
     {:noreply, socket}

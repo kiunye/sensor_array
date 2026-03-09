@@ -56,7 +56,7 @@ defmodule SensorArrayWeb.UserLive.LoginTest do
 
       conn = submit_form(form, conn)
 
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/dashboard"
     end
 
     test "redirects to login page with a flash error if credentials are invalid", %{
@@ -98,7 +98,7 @@ defmodule SensorArrayWeb.UserLive.LoginTest do
     test "shows login page with email filled in", %{conn: conn, user: user} do
       {:ok, _lv, html} = live(conn, ~p"/users/log-in")
 
-      assert html =~ "You need to reauthenticate"
+      assert html =~ "Reauthenticate"
       refute html =~ "Register"
       assert html =~ "Log in with email"
 

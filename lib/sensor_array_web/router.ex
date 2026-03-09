@@ -1,11 +1,13 @@
 defmodule SensorArrayWeb.Router do
   use SensorArrayWeb, :router
 
+  import Phoenix.Controller
   import SensorArrayWeb.UserAuth
 
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
+    plug :put_request_path_in_session
     plug :fetch_live_flash
     plug :put_root_layout, html: {SensorArrayWeb.Layouts, :root}
     plug :protect_from_forgery
@@ -17,8 +19,21 @@ defmodule SensorArrayWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :app_layout do
+    plug :put_request_path
+    plug :put_layout, html: {SensorArrayWeb.Layouts, :app}
+  end
+
+  defp put_request_path_in_session(conn, _opts) do
+    put_session(conn, :request_path, conn.request_path)
+  end
+
+  defp put_request_path(conn, _opts) do
+    assign(conn, :request_path, conn.request_path)
+  end
+
   scope "/", SensorArrayWeb do
-    pipe_through :browser
+    pipe_through [:browser, :app_layout]
 
     get "/", PageController, :home
   end
@@ -51,7 +66,14 @@ defmodule SensorArrayWeb.Router do
     pipe_through [:browser, :require_authenticated_user]
 
     live_session :require_authenticated_user,
-      on_mount: [{SensorArrayWeb.UserAuth, :require_authenticated}] do
+      on_mount: [{SensorArrayWeb.UserAuth, :require_authenticated}],
+      layout: {SensorArrayWeb.Layouts, :app} do
+      live "/dashboard", DashboardLive.Index, :index
+      live "/dashboard/sales", DashboardLive.Sales, :index
+      live "/dashboard/products", DashboardLive.Products, :index
+      live "/dashboard/inventory", DashboardLive.Inventory, :index
+      live "/dashboard/funnel", DashboardLive.Funnel, :index
+      live "/dashboard/segments", DashboardLive.Segments, :index
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
       live "/import", ImportLive, :index
@@ -64,7 +86,8 @@ defmodule SensorArrayWeb.Router do
     pipe_through [:browser]
 
     live_session :current_user,
-      on_mount: [{SensorArrayWeb.UserAuth, :mount_current_scope}] do
+      on_mount: [{SensorArrayWeb.UserAuth, :mount_current_scope}],
+      layout: {SensorArrayWeb.Layouts, :app} do
       live "/users/register", UserLive.Registration, :new
       live "/users/log-in", UserLive.Login, :new
       live "/users/log-in/:token", UserLive.Confirmation, :new

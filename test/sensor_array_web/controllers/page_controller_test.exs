@@ -3,6 +3,10 @@ defmodule SensorArrayWeb.PageControllerTest do
 
   test "GET /", %{conn: conn} do
     conn = get(conn, ~p"/")
-    assert html_response(conn, 200) =~ "Peace of mind from prototype to production"
+    html = html_response(conn, 200)
+    assert html =~ "Know your customers"
+    assert html =~ "Grow your store"
+    assert html =~ "Start free trial"
+    assert html =~ "Features"
   end
 end

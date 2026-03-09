@@ -8,38 +8,39 @@ defmodule SensorArrayWeb.UserLive.Registration do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="mx-auto max-w-sm">
-        <div class="text-center">
-          <.header>
-            Register for an account
-            <:subtitle>
-              Already registered?
-              <.link navigate={~p"/users/log-in"} class="font-semibold text-brand hover:underline">
-                Log in
-              </.link>
-              to your account now.
-            </:subtitle>
-          </.header>
+    <div class="mx-auto max-w-md motion-reduce:animate-none">
+      <div class="card bg-base-200 border border-base-300 motion-safe:animate-fade-in">
+        <div class="card-body gap-6">
+          <div class="text-center">
+            <.header>
+              <p class="text-xl font-semibold tracking-tight text-base-content">Register</p>
+              <:subtitle>
+                Already registered?
+                <.link navigate={~p"/users/log-in"} class="link link-primary font-medium">
+                  Log in
+                </.link>
+                to your account.
+              </:subtitle>
+            </.header>
+          </div>
+
+          <.form for={@form} id="registration_form" phx-submit="save" phx-change="validate" class="space-y-4">
+            <.input
+              field={@form[:email]}
+              type="email"
+              label="Email"
+              autocomplete="username"
+              spellcheck="false"
+              required
+              phx-mounted={JS.focus()}
+            />
+            <.button phx-disable-with="Creating account..." class="btn btn-primary w-full">
+              Create an account
+            </.button>
+          </.form>
         </div>
-
-        <.form for={@form} id="registration_form" phx-submit="save" phx-change="validate">
-          <.input
-            field={@form[:email]}
-            type="email"
-            label="Email"
-            autocomplete="username"
-            spellcheck="false"
-            required
-            phx-mounted={JS.focus()}
-          />
-
-          <.button phx-disable-with="Creating account..." class="btn btn-primary w-full">
-            Create an account
-          </.button>
-        </.form>
       </div>
-    </Layouts.app>
+    </div>
     """
   end
 
