@@ -42,6 +42,13 @@ config :sensor_array,
   ecto_repos: [SensorArray.Repo],
   generators: [timestamp_type: :utc_datetime]
 
+# RFM segment thresholds (recency days, frequency breaks, monetary breaks)
+# Used by Analytics.TeamAggregator for customer segments.
+config :sensor_array, :rfm,
+  recency_days: [30, 90, 180],
+  frequency_breaks: [1, 2, 5],
+  monetary_breaks: [0, 50, 200, 500]
+
 # Configures the endpoint
 config :sensor_array, SensorArrayWeb.Endpoint,
   url: [host: "localhost"],

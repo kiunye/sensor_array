@@ -4,10 +4,23 @@ defmodule SensorArray.Analytics.ETSStore do
   One named table per team (e.g. :"analytics_<team_id>") holds
   aggregated metrics for the dashboard. Rebuild clears and repopulates
   from Postgres or placeholder data; used by ingestion and sync.
+  Returns default values for missing keys and triggers async rebuild (2b).
   """
   use GenServer
 
   require Logger
+
+  alias SensorArray.Workers.RebuildETSWorker
+
+  @default_metrics %{
+    {:sales_trend, :daily} => [],
+    {:sales_trend, :weekly} => [],
+    {:sales_trend, :monthly} => [],
+    {:top_products, :revenue} => [],
+    :inventory_alerts => [],
+    :funnel => %{viewed: 0, added_to_cart: 0, checkout: 0, purchased: 0},
+    :segments => %{new: 0, returning: 0, at_risk: 0, champions: 0}
+  }
 
   @doc "Start the ETS manager (singleton)."
   def start_link(opts \\ []) do
@@ -80,27 +93,38 @@ defmodule SensorArray.Analytics.ETSStore do
   @impl true
   def handle_call({:get_metrics, team_id}, _from, state) do
     table = table_name(team_id)
-    result =
+    {raw, _missing} =
       case :ets.whereis(table) do
-        :undefined -> %{}
+        :undefined ->
+          send(self(), {:trigger_rebuild, team_id})
+          {%{}, true}
+
         _ ->
-          :ets.tab2list(table)
-          |> Enum.into(%{}, fn {k, v} -> {k, v} end)
+          list = :ets.tab2list(table) |> Enum.into(%{}, fn {k, v} -> {k, v} end)
+          missing = Enum.any?(@default_metrics, fn {k, _} -> not Map.has_key?(list, k) end)
+          if missing, do: send(self(), {:trigger_rebuild, team_id})
+          {list, missing}
       end
 
+    result = Map.merge(@default_metrics, raw)
     {:reply, result, state}
   end
 
   @impl true
   def handle_call({:get, team_id, key}, _from, state) do
     table = table_name(team_id)
-    result =
+    {result, _missing} =
       case :ets.whereis(table) do
-        :undefined -> nil
+        :undefined ->
+          send(self(), {:trigger_rebuild, team_id})
+          {Map.get(@default_metrics, key), true}
+
         _ ->
           case :ets.lookup(table, key) do
-            [{^key, value}] -> value
-            [] -> nil
+            [{^key, value}] -> {value, false}
+            [] ->
+              send(self(), {:trigger_rebuild, team_id})
+              {Map.get(@default_metrics, key), true}
           end
       end
 
@@ -126,6 +150,17 @@ defmodule SensorArray.Analytics.ETSStore do
   defp normalize_id(id) when is_binary(id), do: id
   defp normalize_id(id) when is_list(id), do: to_string(id)
   defp normalize_id(id), do: to_string(id)
+
+  @impl true
+  def handle_info({:trigger_rebuild, team_id}, state) do
+    if Application.get_env(:sensor_array, :trigger_ets_rebuild_on_miss, true) do
+      # Spawn so Oban inline execution does not run in this process (avoids deadlock when job calls ETSStore).
+      spawn(fn ->
+        RebuildETSWorker.new(%{"team_id" => team_id}) |> Oban.insert()
+      end)
+    end
+    {:noreply, state}
+  end
 
   defp write_placeholder_keys(tid) do
     :ets.insert(tid, {{:sales_trend, :daily}, []})

@@ -6,6 +6,9 @@ config :bcrypt_elixir, :log_rounds, 1
 # Oban: use testing mode so jobs run inline in tests
 config :sensor_array, Oban, testing: :inline
 
+# Avoid spawning ETS rebuild from ETSStore on missing key (spawned process has no sandbox access)
+config :sensor_array, :trigger_ets_rebuild_on_miss, false
+
 # Configure your database (TEST_DATABASE_URL, or DATABASE_URL, or POSTGRES_* from .env).
 partition = System.get_env("MIX_TEST_PARTITION") || ""
 test_url =

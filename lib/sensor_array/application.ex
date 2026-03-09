@@ -6,6 +6,7 @@ defmodule SensorArray.Application do
   use Application
 
   alias SensorArray.Analytics.ETSStore
+  alias SensorArray.Analytics.TeamAggregatorSupervisor
   alias SensorArray.Ingestion.CsvPipeline
   alias SensorArray.Repo
   alias SensorArrayWeb.Endpoint
@@ -20,6 +21,8 @@ defmodule SensorArray.Application do
       {Phoenix.PubSub, name: SensorArray.PubSub},
       {Oban, Application.get_env(:sensor_array, Oban)},
       ETSStore,
+      {Registry, keys: :unique, name: SensorArray.Analytics.TeamAggregatorRegistry},
+      TeamAggregatorSupervisor,
       CsvPipeline,
       # Start to serve requests, typically the last entry
       Endpoint
